@@ -10,6 +10,8 @@ public class MealComponent
     private FoodType foodType;
     private int numTimesUsed;
     private KashrutStatus kashrutStatus;
+    private boolean canBeVegan;
+    private double weight;
 
     public String getName()
     {
@@ -71,10 +73,30 @@ public class MealComponent
         this.kashrutStatus = kashrutStatus;
     }
 
+    public boolean isCanBeVegan()
+    {
+        return this.canBeVegan;
+    }
+
+    public void setCanBeVegan(boolean canBeVegan)
+    {
+        this.canBeVegan = canBeVegan;
+    }
+
+    public double getWeight()
+    {
+        return this.weight;
+    }
+
+    public void setWeight(double weight)
+    {
+        this.weight = weight;
+    }
+
     public boolean canBeEatenWithOtherMealComponent(MealComponent mealComponent)
     {
         KashrutStatus otherKashrutStatus = mealComponent.getKashrutStatus();
         return (this.kashrutStatus == KashrutStatus.PARVE) || (otherKashrutStatus == KashrutStatus.PARVE) ||
-                (otherKashrutStatus != this.kashrutStatus);
+                (otherKashrutStatus == this.kashrutStatus) || this.canBeVegan || mealComponent.isCanBeVegan();
     }
 }

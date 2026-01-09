@@ -1,10 +1,11 @@
 package core;
 
+import data.models.Dish;
 import data.models.FoodType;
 import data.models.MealComponent;
-import data.output.Dish;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class MealRandomizer
 {
@@ -18,21 +19,24 @@ public class MealRandomizer
     public Dish generateDishFromMealComponents(Set<MealComponent> mealComponents)
     {
         Map<FoodType, List<MealComponent>> mealComponentsByFoodType = splitMealComponentsByFoodType(mealComponents);
-        List<MealComponent> proteins = mealComponentsByFoodType.remove(FoodType.PROTEIN);
-        int randIndexProteins = this.random.nextInt(proteins.size());
-        MealComponent selectedProtein = proteins.get(randIndexProteins);
 
-        Set<MealComponent> componentsInDish = new HashSet<>();
-        componentsInDish.add(selectedProtein);
+        MealComponent selectedComponent = selectInitialMealComponent(mealComponentsByFoodType);
 
-        for (FoodType foodType : mealComponentsByFoodType.keySet())
+        // it the selected initial type is one pot, dish is self-contained, no need to proceed
+        if (selectedComponent.getFoodType() == FoodType.ONE_POT)
         {
-            // TODO will this be a bug since we are removing elements in a loop without an iterator? Might have to do this outside of the for loop?
-            List<MealComponent> mealComponentList = removeMealComponents(mealComponentsByFoodType.get(foodType),
-                    selectedProtein);
-            int randIndex = this.random.nextInt(mealComponentList.size());
-            componentsInDish.add(mealComponentList.get(randIndex));
+            return new Dish(Set.of(selectedComponent));
         }
+
+        // else, it's a protein, so we need to build the dish
+        Set<MealComponent> componentsInDish = new HashSet<>();
+        componentsInDish.add(selectedComponent);
+
+        FoodType veggieFoodTypeToUse = getVeggieFoodTypeToUse();
+        componentsInDish.add(
+                getVeggieComponentFromMap(mealComponentsByFoodType, veggieFoodTypeToUse, selectedComponent));
+
+        componentsInDish.add(getRandomMealComponent(mealComponentsByFoodType.get(FoodType.CARB)));
 
         return new Dish(componentsInDish);
     }
@@ -43,20 +47,47 @@ public class MealRandomizer
         for (MealComponent mealComponent : mealComponents)
         {
             FoodType foodType = mealComponent.getFoodType();
-            map.computeIfAbsent(foodType, k -> new ArrayList<>());
+            map.computeIfAbsent(foodType, ft -> new ArrayList<>());
             map.get(foodType).add(mealComponent);
         }
         return map;
     }
 
-    // TODO This might need to be done outside of the loop it's called in, and might need to be smarter
-    private List<MealComponent> removeMealComponents(List<MealComponent> mealComponents, MealComponent comparingAgainst)
+    private MealComponent selectInitialMealComponent(Map<FoodType, List<MealComponent>> mealComponentsByFoodType)
     {
-        mealComponents.removeIf(next -> !next.canBeEatenWithOtherMealComponent(comparingAgainst));
+        FoodType initialFoodTypeToUse = this.random.nextInt(2) == 0 ? FoodType.PROTEIN : FoodType.ONE_POT;
+        List<MealComponent> mealComponents = mealComponentsByFoodType.remove(initialFoodTypeToUse);
+        return getRandomMealComponent(mealComponents);
+    }
 
-        FoodType veggieTypeToRemove = this.random.nextInt(2) == 0 ? FoodType.VEGGIE : FoodType.SALAD;
-        mealComponents.removeIf(next -> next.getFoodType() == veggieTypeToRemove);
+    private MealComponent getRandomMealComponent(List<MealComponent> mealComponents)
+    {
+        int randIndex = this.random.nextInt(mealComponents.size());
+        return mealComponents.get(randIndex);
+    }
 
-        return mealComponents;
+    private FoodType getVeggieFoodTypeToUse()
+    {
+        return this.random.nextInt(2) == 0 ? FoodType.VEGGIE : FoodType.SALAD;
+    }
+
+    private MealComponent getVeggieComponentFromMap(Map<FoodType, List<MealComponent>> mealComponentsMap,
+            FoodType veggieTypeToUse, MealComponent selectedProtein)
+    {
+        List<MealComponent> mealComponentsForSelectedVeggieType = mealComponentsMap.get(veggieTypeToUse);
+        MealComponent initialVeggie = getRandomMealComponent(mealComponentsForSelectedVeggieType.stream()
+                .filter(mealComponent -> mealComponent.canBeEatenWithOtherMealComponent(selectedProtein))
+                .collect(Collectors.toList()));
+
+        if (initialVeggie != null)
+        {
+            return initialVeggie;
+        }
+
+        FoodType veggieDefault = veggieTypeToUse == FoodType.VEGGIE ? FoodType.SALAD : FoodType.VEGGIE;
+        List<MealComponent> mealComponentsForVeggieDefault = mealComponentsMap.get(veggieDefault);
+        return getRandomMealComponent(mealComponentsForVeggieDefault.stream()
+                .filter(mealComponent -> mealComponent.canBeEatenWithOtherMealComponent(selectedProtein))
+                .collect(Collectors.toList()));
     }
 }

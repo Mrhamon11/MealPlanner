@@ -6,4 +6,5 @@ public enum FoodType
     CARB,
     VEGGIE,
     SALAD,
+    ONE_POT,
 }
