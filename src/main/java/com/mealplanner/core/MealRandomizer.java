@@ -1,8 +1,8 @@
-package core;
+package com.mealplanner.core;
 
-import data.models.Dish;
-import data.models.FoodType;
-import data.models.MealComponent;
+import com.mealplanner.data.models.Dish;
+import com.mealplanner.data.models.FoodType;
+import com.mealplanner.data.models.MealComponent;
 
 import java.util.*;
 import java.util.stream.Collectors;

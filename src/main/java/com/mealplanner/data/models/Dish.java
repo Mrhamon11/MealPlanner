@@ -1,4 +1,4 @@
-package data.models;
+package com.mealplanner.data.models;
 
 import java.util.HashSet;
 import java.util.Set;

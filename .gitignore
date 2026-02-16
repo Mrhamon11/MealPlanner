@@ -2,9 +2,20 @@
 
 .idea
 *.iml
+*.log
+.output.txt
 target
 !**/src/main/**/out/
 !**/src/test/**/out/
+
+# Vaadin generated files
+/frontend/
+/node_modules/
+package.json
+package-lock.json
+vite.config.ts
+vite.generated.ts
+types.d.ts
 
 ### Eclipse ###
 .apt_generated

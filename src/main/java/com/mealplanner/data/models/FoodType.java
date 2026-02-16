@@ -1,4 +1,4 @@
-package data.models;
+package com.mealplanner.data.models;
 
 public enum FoodType
 {
