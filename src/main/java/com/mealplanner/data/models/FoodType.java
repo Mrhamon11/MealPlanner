@@ -7,4 +7,6 @@ public enum FoodType
     VEGGIE,
     SALAD,
     ONE_POT,
+    SOUP,
+    DESSERT,
 }

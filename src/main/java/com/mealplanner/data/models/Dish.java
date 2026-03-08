@@ -5,30 +5,27 @@ import java.util.Set;
 
 public class Dish
 {
-    private final Set<MealComponent> components;
+    private final Set<Recipe> recipes;
     private String name;
-    private final boolean isFullyFreezable;
-    private final Set<MealComponent> freezableComponents;
+    private final Set<Recipe> freezableComponents;
 
-    public Dish(Set<MealComponent> components)
+    public Dish(Set<Recipe> recipes)
     {
-        this.components = components;
+        this.recipes = recipes;
 
         this.freezableComponents = new HashSet<>();
-        for (MealComponent mealComponent : this.components)
+        for (Recipe recipe : this.recipes)
         {
-            if (mealComponent.isFreezable())
+            if (recipe.isFreezable())
             {
-                this.freezableComponents.add(mealComponent);
+                this.freezableComponents.add(recipe);
             }
         }
-
-        this.isFullyFreezable = this.components.size() == this.freezableComponents.size();
     }
 
-    public Set<MealComponent> getComponents()
+    public Set<Recipe> getRecipes()
     {
-        return this.components;
+        return this.recipes;
     }
 
     public String getName()
@@ -43,10 +40,10 @@ public class Dish
 
     public boolean isFullyFreezable()
     {
-        return this.isFullyFreezable;
+        return this.recipes.size() == this.freezableComponents.size();
     }
 
-    public Set<MealComponent> getFreezableComponents()
+    public Set<Recipe> getFreezableComponents()
     {
         return this.freezableComponents;
     }

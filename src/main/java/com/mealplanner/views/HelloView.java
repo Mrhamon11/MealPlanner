@@ -29,6 +29,8 @@ public class HelloView extends VerticalLayout
         HorizontalLayout inputLayout = new HorizontalLayout(textField, submitButton);
         inputLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
 
+        greeting.getElement().getStyle().set("color", "green");
+
         add(inputLayout, greeting);
 
         // Center the content

@@ -2,7 +2,7 @@ package com.mealplanner.data.models;
 
 import java.util.Set;
 
-public class MealComponent
+public class Recipe
 {
     private String name;
     private Set<String> ingredients;
@@ -93,10 +93,10 @@ public class MealComponent
         this.weight = weight;
     }
 
-    public boolean canBeEatenWithOtherMealComponent(MealComponent mealComponent)
+    public boolean isKashrutCompatible(Recipe recipe)
     {
-        KashrutStatus otherKashrutStatus = mealComponent.getKashrutStatus();
+        KashrutStatus otherKashrutStatus = recipe.getKashrutStatus();
         return (this.kashrutStatus == KashrutStatus.PARVE) || (otherKashrutStatus == KashrutStatus.PARVE) ||
-                (otherKashrutStatus == this.kashrutStatus) || this.canBeVegan || mealComponent.isCanBeVegan();
+                (otherKashrutStatus == this.kashrutStatus) || this.canBeVegan || recipe.isCanBeVegan();
     }
 }

@@ -2,7 +2,7 @@ package com.mealplanner.core;
 
 import com.mealplanner.data.models.Dish;
 import com.mealplanner.data.models.FoodType;
-import com.mealplanner.data.models.MealComponent;
+import com.mealplanner.data.models.Recipe;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -16,11 +16,11 @@ public class MealRandomizer
         this.random = random;
     }
 
-    public Dish generateDishFromMealComponents(Set<MealComponent> mealComponents)
+    public Dish generateDishFromMealComponents(Set<Recipe> recipes)
     {
-        Map<FoodType, List<MealComponent>> mealComponentsByFoodType = splitMealComponentsByFoodType(mealComponents);
+        Map<FoodType, List<Recipe>> mealComponentsByFoodType = this.splitMealComponentsByFoodType(recipes);
 
-        MealComponent selectedComponent = selectInitialMealComponent(mealComponentsByFoodType);
+        Recipe selectedComponent = this.selectInitialMealComponent(mealComponentsByFoodType);
 
         // it the selected initial type is one pot, dish is self-contained, no need to proceed
         if (selectedComponent.getFoodType() == FoodType.ONE_POT)
@@ -29,41 +29,41 @@ public class MealRandomizer
         }
 
         // else, it's a protein, so we need to build the dish
-        Set<MealComponent> componentsInDish = new HashSet<>();
+        Set<Recipe> componentsInDish = new HashSet<>();
         componentsInDish.add(selectedComponent);
 
-        FoodType veggieFoodTypeToUse = getVeggieFoodTypeToUse();
+        FoodType veggieFoodTypeToUse = this.getVeggieFoodTypeToUse();
         componentsInDish.add(
-                getVeggieComponentFromMap(mealComponentsByFoodType, veggieFoodTypeToUse, selectedComponent));
+                this.getVeggieComponentFromMap(mealComponentsByFoodType, veggieFoodTypeToUse, selectedComponent));
 
-        componentsInDish.add(getRandomMealComponent(mealComponentsByFoodType.get(FoodType.CARB)));
+        componentsInDish.add(this.getRandomMealComponent(mealComponentsByFoodType.get(FoodType.CARB)));
 
         return new Dish(componentsInDish);
     }
 
-    private Map<FoodType, List<MealComponent>> splitMealComponentsByFoodType(Set<MealComponent> mealComponents)
+    private Map<FoodType, List<Recipe>> splitMealComponentsByFoodType(Set<Recipe> recipes)
     {
-        Map<FoodType, List<MealComponent>> map = new HashMap<>();
-        for (MealComponent mealComponent : mealComponents)
+        Map<FoodType, List<Recipe>> map = new HashMap<>();
+        for (Recipe recipe : recipes)
         {
-            FoodType foodType = mealComponent.getFoodType();
+            FoodType foodType = recipe.getFoodType();
             map.computeIfAbsent(foodType, ft -> new ArrayList<>());
-            map.get(foodType).add(mealComponent);
+            map.get(foodType).add(recipe);
         }
         return map;
     }
 
-    private MealComponent selectInitialMealComponent(Map<FoodType, List<MealComponent>> mealComponentsByFoodType)
+    private Recipe selectInitialMealComponent(Map<FoodType, List<Recipe>> mealComponentsByFoodType)
     {
         FoodType initialFoodTypeToUse = this.random.nextInt(2) == 0 ? FoodType.PROTEIN : FoodType.ONE_POT;
-        List<MealComponent> mealComponents = mealComponentsByFoodType.remove(initialFoodTypeToUse);
-        return getRandomMealComponent(mealComponents);
+        List<Recipe> recipes = mealComponentsByFoodType.remove(initialFoodTypeToUse);
+        return this.getRandomMealComponent(recipes);
     }
 
-    private MealComponent getRandomMealComponent(List<MealComponent> mealComponents)
+    private Recipe getRandomMealComponent(List<Recipe> recipes)
     {
-        int randIndex = this.random.nextInt(mealComponents.size());
-        return mealComponents.get(randIndex);
+        int randIndex = this.random.nextInt(recipes.size());
+        return recipes.get(randIndex);
     }
 
     private FoodType getVeggieFoodTypeToUse()
@@ -71,12 +71,12 @@ public class MealRandomizer
         return this.random.nextInt(2) == 0 ? FoodType.VEGGIE : FoodType.SALAD;
     }
 
-    private MealComponent getVeggieComponentFromMap(Map<FoodType, List<MealComponent>> mealComponentsMap,
-            FoodType veggieTypeToUse, MealComponent selectedProtein)
+    private Recipe getVeggieComponentFromMap(Map<FoodType, List<Recipe>> mealComponentsMap,
+            FoodType veggieTypeToUse, Recipe selectedProtein)
     {
-        List<MealComponent> mealComponentsForSelectedVeggieType = mealComponentsMap.get(veggieTypeToUse);
-        MealComponent initialVeggie = getRandomMealComponent(mealComponentsForSelectedVeggieType.stream()
-                .filter(mealComponent -> mealComponent.canBeEatenWithOtherMealComponent(selectedProtein))
+        List<Recipe> mealComponentsForSelectedVeggieType = mealComponentsMap.get(veggieTypeToUse);
+        Recipe initialVeggie = this.getRandomMealComponent(mealComponentsForSelectedVeggieType.stream()
+                .filter(recipe -> recipe.isKashrutCompatible(selectedProtein))
                 .collect(Collectors.toList()));
 
         if (initialVeggie != null)
@@ -85,9 +85,9 @@ public class MealRandomizer
         }
 
         FoodType veggieDefault = veggieTypeToUse == FoodType.VEGGIE ? FoodType.SALAD : FoodType.VEGGIE;
-        List<MealComponent> mealComponentsForVeggieDefault = mealComponentsMap.get(veggieDefault);
-        return getRandomMealComponent(mealComponentsForVeggieDefault.stream()
-                .filter(mealComponent -> mealComponent.canBeEatenWithOtherMealComponent(selectedProtein))
+        List<Recipe> mealComponentsForVeggieDefault = mealComponentsMap.get(veggieDefault);
+        return this.getRandomMealComponent(mealComponentsForVeggieDefault.stream()
+                .filter(recipe -> recipe.isKashrutCompatible(selectedProtein))
                 .collect(Collectors.toList()));
     }
 }
