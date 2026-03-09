@@ -40,11 +40,7 @@ public class DishConstructor
 
         if (isMultiRecipeFoodType(randomRecipe.foodType()))
         {
-            Dish multiRecipeDish = attemptMultiRecipeDish(random, filteredRecipes, randomRecipe);
-            if (multiRecipeDish != null)
-            {
-                return multiRecipeDish;
-            }
+            return attemptMultiRecipeDish(random, filteredRecipes, randomRecipe);
         }
 
         return null;
