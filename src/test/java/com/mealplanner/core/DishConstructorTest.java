@@ -28,12 +28,7 @@ public class DishConstructorTest
 
     private Recipe createRecipe(String name, FoodType foodType, KashrutStatus kashrutStatus, boolean canBeVegan)
     {
-        Recipe recipe = new Recipe();
-        recipe.setName(name);
-        recipe.setFoodType(foodType);
-        recipe.setKashrutStatus(kashrutStatus);
-        recipe.setCanBeVegan(canBeVegan);
-        return recipe;
+        return new Recipe(name, null, false, foodType, 0, kashrutStatus, canBeVegan, 0.0);
     }
 
     @Test
@@ -58,8 +53,8 @@ public class DishConstructorTest
                 this.dishConstructor.constructDish(this.random, this.recipes, false, preferredFoodType, null, false);
 
         assertNotNull(dish);
-        assertEquals(1, dish.getRecipes().size());
-        assertEquals(FoodType.PROTEIN, dish.getRecipes().iterator().next().getFoodType());
+        assertEquals(1, dish.recipes().size());
+        assertEquals(FoodType.PROTEIN, dish.recipes().iterator().next().foodType());
     }
 
     @Test
@@ -72,11 +67,10 @@ public class DishConstructorTest
 
         Set<KashrutStatus> preferredKashrutStatus = new HashSet<>(Collections.singletonList(KashrutStatus.MEAT));
 
-        // Case 1: allowVeganSubstitutions = false
         Dish dish = this.dishConstructor.constructDish(this.random, this.recipes, true, null, preferredKashrutStatus,
                 false);
         assertNotNull(dish);
-        KashrutStatus status = dish.getRecipes().iterator().next().getKashrutStatus();
+        KashrutStatus status = dish.recipes().iterator().next().kashrutStatus();
         assertTrue(status == KashrutStatus.MEAT || status == KashrutStatus.PARVE);
 
         // Case 2: allowVeganSubstitutions = true
@@ -87,8 +81,8 @@ public class DishConstructorTest
         {
             dish = this.dishConstructor.constructDish(new Random(i), this.recipes, true, null, preferredKashrutStatus,
                     true);
-            Recipe r = dish.getRecipes().iterator().next();
-            if (r.getKashrutStatus() == KashrutStatus.DAIRY && r.isCanBeVegan())
+            Recipe r = dish.recipes().iterator().next();
+            if (r.kashrutStatus() == KashrutStatus.DAIRY && r.canBeVegan())
             {
                 foundVegan = true;
                 break;
@@ -119,12 +113,12 @@ public class DishConstructorTest
                             false);
             if (dish != null)
             {
-                Recipe r = dish.getRecipes().iterator().next();
-                if (r.getKashrutStatus() == KashrutStatus.DAIRY)
+                Recipe r = dish.recipes().iterator().next();
+                if (r.kashrutStatus() == KashrutStatus.DAIRY)
                 {
                     foundDairy = true;
                 }
-                if (r.getKashrutStatus() == KashrutStatus.MEAT)
+                if (r.kashrutStatus() == KashrutStatus.MEAT)
                 {
                     foundMeat = true;
                 }
@@ -149,8 +143,8 @@ public class DishConstructorTest
             Dish dish =
                     this.dishConstructor.constructDish(new Random(i), this.recipes, true, null, preferredKashrutStatus,
                             false);
-            Recipe r = dish.getRecipes().iterator().next();
-            assertNotEquals(KashrutStatus.DAIRY, r.getKashrutStatus(),
+            Recipe r = dish.recipes().iterator().next();
+            assertNotEquals(KashrutStatus.DAIRY, r.kashrutStatus(),
                     "Should NOT have picked a dairy recipe when factorInKashrut is true");
         }
     }
@@ -161,8 +155,8 @@ public class DishConstructorTest
         this.recipes.add(createRecipe("OnePot", FoodType.ONE_POT, KashrutStatus.PARVE, false));
         Dish dish = this.dishConstructor.constructDish(this.random, this.recipes, false, null, null, false);
         assertNotNull(dish);
-        assertEquals(1, dish.getRecipes().size());
-        assertEquals(FoodType.ONE_POT, dish.getRecipes().iterator().next().getFoodType());
+        assertEquals(1, dish.recipes().size());
+        assertEquals(FoodType.ONE_POT, dish.recipes().iterator().next().foodType());
     }
 
     @Test
@@ -174,12 +168,12 @@ public class DishConstructorTest
 
         Dish dish = this.dishConstructor.constructDish(this.random, this.recipes, false, null, null, false);
         assertNotNull(dish);
-        assertEquals(3, dish.getRecipes().size());
+        assertEquals(3, dish.recipes().size());
 
         Set<FoodType> types = new HashSet<>();
-        for (Recipe r : dish.getRecipes())
+        for (Recipe r : dish.recipes())
         {
-            types.add(r.getFoodType());
+            types.add(r.foodType());
         }
         assertTrue(types.contains(FoodType.PROTEIN));
         assertTrue(types.contains(FoodType.CARB));

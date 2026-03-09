@@ -23,7 +23,7 @@ public class MealRandomizer
         Recipe selectedComponent = this.selectInitialMealComponent(mealComponentsByFoodType);
 
         // it the selected initial type is one pot, dish is self-contained, no need to proceed
-        if (selectedComponent.getFoodType() == FoodType.ONE_POT)
+        if (selectedComponent.foodType() == FoodType.ONE_POT)
         {
             return new Dish(Set.of(selectedComponent));
         }
@@ -43,14 +43,7 @@ public class MealRandomizer
 
     private Map<FoodType, List<Recipe>> splitMealComponentsByFoodType(Set<Recipe> recipes)
     {
-        Map<FoodType, List<Recipe>> map = new HashMap<>();
-        for (Recipe recipe : recipes)
-        {
-            FoodType foodType = recipe.getFoodType();
-            map.computeIfAbsent(foodType, ft -> new ArrayList<>());
-            map.get(foodType).add(recipe);
-        }
-        return map;
+        return recipes.stream().collect(Collectors.groupingBy(Recipe::foodType));
     }
 
     private Recipe selectInitialMealComponent(Map<FoodType, List<Recipe>> mealComponentsByFoodType)
@@ -77,7 +70,7 @@ public class MealRandomizer
         List<Recipe> mealComponentsForSelectedVeggieType = mealComponentsMap.get(veggieTypeToUse);
         Recipe initialVeggie = this.getRandomMealComponent(mealComponentsForSelectedVeggieType.stream()
                 .filter(recipe -> recipe.isKashrutCompatible(selectedProtein))
-                .collect(Collectors.toList()));
+                .toList());
 
         if (initialVeggie != null)
         {
@@ -88,6 +81,6 @@ public class MealRandomizer
         List<Recipe> mealComponentsForVeggieDefault = mealComponentsMap.get(veggieDefault);
         return this.getRandomMealComponent(mealComponentsForVeggieDefault.stream()
                 .filter(recipe -> recipe.isKashrutCompatible(selectedProtein))
-                .collect(Collectors.toList()));
+                .toList());
     }
 }

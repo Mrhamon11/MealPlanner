@@ -1,102 +1,30 @@
 package com.mealplanner.data.models;
 
+import java.util.Collections;
 import java.util.Set;
 
-public class Recipe
+public record Recipe(
+        String name,
+        Set<String> ingredients,
+        boolean isFreezable,
+        FoodType foodType,
+        int numTimesUsed,
+        KashrutStatus kashrutStatus,
+        boolean canBeVegan,
+        double weight)
 {
-    private String name;
-    private Set<String> ingredients;
-    private boolean isFreezable;
-    private FoodType foodType;
-    private int numTimesUsed;
-    private KashrutStatus kashrutStatus;
-    private boolean canBeVegan;
-    private double weight;
-
-    public String getName()
+    public Recipe
     {
-        return this.name;
-    }
-
-    public void setName(String name)
-    {
-        this.name = name;
-    }
-
-    public Set<String> getIngredients()
-    {
-        return this.ingredients;
-    }
-
-    public void setIngredients(Set<String> ingredients)
-    {
-        this.ingredients = ingredients;
-    }
-
-    public boolean isFreezable()
-    {
-        return this.isFreezable;
-    }
-
-    public void setFreezable(boolean freezable)
-    {
-        this.isFreezable = freezable;
-    }
-
-    public FoodType getFoodType()
-    {
-        return this.foodType;
-    }
-
-    public void setFoodType(FoodType foodType)
-    {
-        this.foodType = foodType;
-    }
-
-    public int getNumTimesUsed()
-    {
-        return this.numTimesUsed;
-    }
-
-    public void setNumTimesUsed(int numTimesUsed)
-    {
-        this.numTimesUsed = numTimesUsed;
-    }
-
-    public KashrutStatus getKashrutStatus()
-    {
-        return this.kashrutStatus;
-    }
-
-    public void setKashrutStatus(KashrutStatus kashrutStatus)
-    {
-        this.kashrutStatus = kashrutStatus;
-    }
-
-    public boolean isCanBeVegan()
-    {
-        return this.canBeVegan;
-    }
-
-    public void setCanBeVegan(boolean canBeVegan)
-    {
-        this.canBeVegan = canBeVegan;
-    }
-
-    public double getWeight()
-    {
-        return this.weight;
-    }
-
-    public void setWeight(double weight)
-    {
-        this.weight = weight;
+        ingredients = ingredients != null ? Collections.unmodifiableSet(ingredients) : Collections.emptySet();
     }
 
     public boolean isKashrutCompatible(Recipe recipe)
     {
-        KashrutStatus otherKashrutStatus = recipe.getKashrutStatus();
-        return (this.kashrutStatus == KashrutStatus.PARVE) || (otherKashrutStatus == KashrutStatus.PARVE) ||
-                (otherKashrutStatus == this.kashrutStatus) || this.canBeVegan || recipe.isCanBeVegan();
+        KashrutStatus otherKashrutStatus = recipe.kashrutStatus();
+        return (this.kashrutStatus == KashrutStatus.PARVE) ||
+               (otherKashrutStatus == KashrutStatus.PARVE) ||
+               (otherKashrutStatus == this.kashrutStatus) ||
+               this.canBeVegan ||
+               recipe.canBeVegan();
     }
 }

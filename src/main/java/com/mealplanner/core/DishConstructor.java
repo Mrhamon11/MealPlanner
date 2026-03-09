@@ -33,12 +33,12 @@ public class DishConstructor
         List<Recipe> filteredList = new ArrayList<>(filteredRecipes);
         Recipe randomRecipe = filteredList.get(random.nextInt(filteredList.size()));
 
-        if (isSingleRecipeFoodType(randomRecipe.getFoodType()))
+        if (isSingleRecipeFoodType(randomRecipe.foodType()))
         {
             return createSingleRecipeDish(randomRecipe);
         }
 
-        if (isMultiRecipeFoodType(randomRecipe.getFoodType()))
+        if (isMultiRecipeFoodType(randomRecipe.foodType()))
         {
             Dish multiRecipeDish = attemptMultiRecipeDish(random, filteredRecipes, randomRecipe);
             if (multiRecipeDish != null)
@@ -54,7 +54,7 @@ public class DishConstructor
     {
         if (preferredFoodType != null)
         {
-            return recipes.stream().filter(recipe -> preferredFoodType.contains(recipe.getFoodType()))
+            return recipes.stream().filter(recipe -> preferredFoodType.contains(recipe.foodType()))
                     .collect(Collectors.toSet());
         }
         return new HashSet<>(recipes);
@@ -83,9 +83,9 @@ public class DishConstructor
         }
         else if (preferredKashrutStatus.size() == 1 && preferredKashrutStatus.contains(KashrutStatus.PARVE))
         {
-            return recipes.stream().filter(recipe -> (recipe.getKashrutStatus() != KashrutStatus.MEAT &&
-                    recipe.getKashrutStatus() != KashrutStatus.DAIRY) ||
-                    (allowVeganSubstitutions && recipe.isCanBeVegan())).collect(Collectors.toSet());
+            return recipes.stream().filter(recipe -> (recipe.kashrutStatus() != KashrutStatus.MEAT &&
+                    recipe.kashrutStatus() != KashrutStatus.DAIRY) ||
+                    (allowVeganSubstitutions && recipe.canBeVegan())).collect(Collectors.toSet());
         }
 
         return recipes;
@@ -94,43 +94,48 @@ public class DishConstructor
     private Set<Recipe> filterRecipes(Set<Recipe> recipes, KashrutStatus excludedStatus,
             boolean allowVeganSubstitutions)
     {
-        return recipes.stream().filter(recipe -> recipe.getKashrutStatus() != excludedStatus ||
-                (allowVeganSubstitutions && recipe.isCanBeVegan())).collect(Collectors.toSet());
+        return recipes.stream().filter(recipe -> recipe.kashrutStatus() != excludedStatus ||
+                (allowVeganSubstitutions && recipe.canBeVegan())).collect(Collectors.toSet());
     }
 
     private boolean isSingleRecipeFoodType(FoodType foodType)
     {
-        return foodType == FoodType.ONE_POT || foodType == FoodType.SOUP;
+        return switch (foodType)
+        {
+            case ONE_POT, SOUP -> true;
+            default -> false;
+        };
     }
 
     private boolean isMultiRecipeFoodType(FoodType foodType)
     {
-        return foodType == FoodType.PROTEIN || foodType == FoodType.CARB || foodType == FoodType.VEGGIE ||
-                foodType == FoodType.SALAD;
+        return switch (foodType)
+        {
+            case PROTEIN, CARB, VEGGIE, SALAD -> true;
+            default -> false;
+        };
     }
 
     private Dish createSingleRecipeDish(Recipe recipe)
     {
-        Set<Recipe> dishRecipes = new HashSet<>();
-        dishRecipes.add(recipe);
-        return new Dish(dishRecipes);
+        return new Dish(Set.of(recipe));
     }
 
     private Dish attemptMultiRecipeDish(Random random, Set<Recipe> filteredRecipes, Recipe initialRecipe)
     {
-        List<Recipe> pool = filteredRecipes.stream().filter(r -> isMultiRecipeFoodType(r.getFoodType()))
-                .collect(Collectors.toList());
+        List<Recipe> pool = filteredRecipes.stream().filter(r -> isMultiRecipeFoodType(r.foodType()))
+                .toList();
 
-        List<FoodType[]> validCombos = getValidMultiRecipeCombos();
+        List<FoodType[]> validCombos = new ArrayList<>(getValidMultiRecipeCombos());
         Collections.shuffle(validCombos, random);
 
-        for (FoodType[] combo : validCombos)
+        for (var combo : validCombos)
         {
             Set<Recipe> selected = new HashSet<>();
             for (FoodType type : combo)
             {
-                List<Recipe> typedRecipes =
-                        pool.stream().filter(r -> r.getFoodType() == type).collect(Collectors.toList());
+                var typedRecipes =
+                        pool.stream().filter(r -> r.foodType() == type).toList();
                 if (!typedRecipes.isEmpty())
                 {
                     selected.add(typedRecipes.get(random.nextInt(typedRecipes.size())));
@@ -147,10 +152,10 @@ public class DishConstructor
 
     private List<FoodType[]> getValidMultiRecipeCombos()
     {
-        List<FoodType[]> validCombos = new ArrayList<>();
-        validCombos.add(new FoodType[]{FoodType.PROTEIN, FoodType.CARB, FoodType.VEGGIE});
-        validCombos.add(new FoodType[]{FoodType.PROTEIN, FoodType.CARB, FoodType.SALAD});
-        validCombos.add(new FoodType[]{FoodType.PROTEIN, FoodType.VEGGIE, FoodType.SALAD});
-        return validCombos;
+        return List.of(
+            new FoodType[]{FoodType.PROTEIN, FoodType.CARB, FoodType.VEGGIE},
+            new FoodType[]{FoodType.PROTEIN, FoodType.CARB, FoodType.SALAD},
+            new FoodType[]{FoodType.PROTEIN, FoodType.VEGGIE, FoodType.SALAD}
+        );
     }
 }
